@@ -30,11 +30,12 @@
 
 inline u32 ProfilerGetThreadId()
 {
+    u32 Result = 0;
 #ifdef WIN32_PROFILING
     u8 *ThreadLocalStorage = (u8 *)__readgsqword(0x30);
-    u32 Result = *(u32 *)(ThreadLocalStorage + 0x48);
+    Result = *(u32 *)(ThreadLocalStorage + 0x48);
 #elif defined(ANDROID_PROFILING)
-    u32 Result = gettid();
+    Result = gettid();
 #endif
     
     return Result;
@@ -42,8 +43,10 @@ inline u32 ProfilerGetThreadId()
 
 inline u64 ProfilerGetCpuCycle()
 {
+    u64 Result = 0;
+    
 #ifdef X86_PROFILING
-    u64 Result = __rdtsc();
+    Result = __rdtsc();
 #elif defined(ARM_PROFILING)
     /* NOTE: Incase we find a way to do this faster
            https://github.com/google/benchmark/blob/v1.1.0/src/cycleclock.h#L116
@@ -53,7 +56,7 @@ inline u64 ProfilerGetCpuCycle()
     // NOTE: https://www.gamasutra.com/view/feature/171774/getting_high_precision_timing_on_.php?page=3
     timespec TimeSpec;
     Assert(clock_gettime(CLOCK_MONOTONIC, &TimeSpec) == 0);
-    u64 Result = TimeSpec.tv_sec*1000*1000*1000 + TimeSpec.tv_nsec;
+    Result = TimeSpec.tv_sec*1000*1000*1000 + TimeSpec.tv_nsec;
 #endif
     return Result;
 }
@@ -446,7 +449,9 @@ inline profiler_open_block* ProfilerOpenBlockAlloc(profiler_open_block_stack* St
 
 inline void ProfilerOpenBlockDealloc(profiler_open_block_stack* Stack)
 {
-    LinkedListSentinelRemove(Stack->Sentinel.Prev);
+    // IMPORTANT: We have to store the remove block in temporary for the macro to work...
+    profiler_open_block* RemoveBlock = Stack->Sentinel.Prev;
+    LinkedListSentinelRemove(RemoveBlock);
 }
 
 inline profiler_function_info* ProfilerFunctionInfoGetOrCreate(profiler_frame* Frame, char* GUID)

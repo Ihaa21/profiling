@@ -225,6 +225,11 @@ struct profiler_state
 
 global profiler_state* ProfilerState;
 
-#include "profiling_ui.h"
+inline void DebugPrintLog(char* Text, ...);
+inline void DebugPrintError(char* Text, ...);
+inline void DebugPrintLog(char* PrintText, u32 PrintTextSize, char* Text, ...);
+inline void DebugPrintError(char* PrintText, u32 PrintTextSize, char* Text, ...);
+
 #include "profiling.cpp"
+#include "profiling_ui.h"
 #include "profiling_ui.cpp"
